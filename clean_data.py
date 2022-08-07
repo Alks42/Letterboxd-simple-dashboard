@@ -11,6 +11,9 @@ def find_archive():
 def extract_info(df, api, isyear=1):
     films_count = len(df)
     rating = df.groupby('Rating')['Name'].nunique().to_dict()
+    for i in range(11):
+        if i/2 not in rating: rating[i/2] = 0
+    rating = dict(sorted(rating.items()))
     avg_rating = "{:.1f}".format(df['Rating'].mean())
 
     if films_count > 10:
@@ -29,10 +32,10 @@ def extract_info(df, api, isyear=1):
 
     api_data = []
     if api:
-        api_data.append(df[['Name', 'Country']].explode('Country').groupby('Country')['Name'].nunique().to_dict())
         api_data.append(df[['Name', 'Genres']].explode('Genres').groupby('Genres')['Name'].nunique().to_dict())
+        api_data.append(df[['Name', 'Country']].explode('Country').groupby('Country')['Name'].nunique().to_dict())
         api_data.append(df['Runtime'].count())
-        # [countries, genres, runtime]
+        # [geners, countries, runtime]
 
     return films_count, rating, avg_rating, highest_rated, lowest_rated, count_by_period, api_data
 
@@ -75,7 +78,7 @@ if __name__ == "clean_data":
     comments_by_year = comments_data.groupby(comments_data['Date'].dt.year)['Comment'].nunique().to_dict()
 
     api = False
-    # api = True
+    api = True
 
     if api: run_api('e840a47026103ff8619463cb2716132d')
 
