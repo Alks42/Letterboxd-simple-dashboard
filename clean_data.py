@@ -6,7 +6,7 @@ import requests
 def find_archive():
     for dirs, dir, files in os.walk('.'):
         for j in files:
-            if j.endswith('utc.zip'): return j
+            if j.endswith('utc.zip') and j.startswith('letterboxd-'): return j
 
 def extract_info(df, api, isyear=1):
     films_count = len(df)
@@ -27,6 +27,9 @@ def extract_info(df, api, isyear=1):
 
     if isyear:
         count_by_period = df.groupby(df['Date'].dt.month)['Name'].nunique().to_dict()
+        for i in range(1, 13):
+            if i not in count_by_period: count_by_period[i] = 0
+        count_by_period = dict(sorted(count_by_period.items()))
     else:
         count_by_period = df.groupby(df['Date'].dt.year)['Name'].nunique().to_dict()
 
@@ -34,35 +37,45 @@ def extract_info(df, api, isyear=1):
     if api:
         api_data.append(df[['Name', 'Genres']].explode('Genres').groupby('Genres')['Name'].nunique().to_dict())
         api_data.append(df[['Name', 'Country']].explode('Country').groupby('Country')['Name'].nunique().to_dict())
-        api_data.append(df['Runtime'].count())
+        api_data.append(df['Runtime'].sum())
         # [geners, countries, runtime]
 
     return films_count, rating, avg_rating, highest_rated, lowest_rated, count_by_period, api_data
 
-def run_api(api_key):
+def main(api=''):
 
-    genres, countries, runtime, vote_average = [], [], [], []
-    for film in watched_data['Name'].to_list():
-        id = requests.get('https://api.themoviedb.org/3/search/movie?api_key=' + api_key +'&query=' + film)
-        if id.status_code == 200 and id.json()['results']:
-            req = requests.get('https://api.themoviedb.org/3/movie/' + str(id.json()['results'][0]['id']) + '?api_key=' + api_key)
-            if req.status_code == 200:
-                countries.append([country['name'] for country in req.json()['production_countries']])
-                genres.append([genre['name'] for genre in req.json()['genres']])
-                runtime.append(req.json()['runtime'])
-                vote_average.append(req.json()['vote_average'])
+    def run_api(api_key):
+        nonlocal watched_data, problems
+        genres, countries, runtime, vote_average = [], [], [], []
+        for film in watched_data['Name'].to_list():
+            id = requests.get('https://api.themoviedb.org/3/search/movie?api_key=' + api_key + '&query=' + film)
+            if id.status_code == 200 and id.json()['results']:
+                req = requests.get(
+                    'https://api.themoviedb.org/3/movie/' + str(id.json()['results'][0]['id']) + '?api_key=' + api_key)
+                if req.status_code == 200:
+                    countries.append([country['name'] for country in req.json()['production_countries']])
+                    genres.append([genre['name'] for genre in req.json()['genres']])
+                    runtime.append(req.json()['runtime'])
+                    vote_average.append(req.json()['vote_average'])
+                else:
+                    countries.append([None])
+                    genres.append([None])
+                    runtime.append(None)
+                    vote_average.append(None)
+                    problems += 1
+                    # print(req.status_code, req.json(), watched_data.index[watched_data['Name'] == film].to_list())
             else:
-                print(req.status_code, req.json(), watched_data.index[watched_data['Name'] == film].to_list())
-        else:
-            print(id.status_code, id.json(), watched_data.index[watched_data['Name'] == film].to_list())
+                countries.append([None])
+                genres.append([None])
+                runtime.append(None)
+                vote_average.append(None)
+                problems += 1
+                # print(id.status_code, id.json(), watched_data.index[watched_data['Name'] == film].to_list())
+        watched_data['Country'] = countries
+        watched_data['Genres'] = genres
+        watched_data['Runtime'] = runtime
+        watched_data['Vote_average'] = vote_average
 
-    watched_data['Country'] = countries
-    watched_data['Genres'] = genres
-    watched_data['Runtime'] = runtime
-    watched_data['Vote_average'] = vote_average
-
-
-if __name__ == "clean_data":
     with zipfile.ZipFile(find_archive()) as zf:
         watched_data = pd.merge(pd.read_csv(zf.open('watched.csv'))[ ['Name', 'Date'] ],
                                 pd.read_csv(zf.open('ratings.csv'))[ ['Name', 'Rating'] ],
@@ -77,10 +90,8 @@ if __name__ == "clean_data":
     rewies_by_year = rewies_data.groupby(rewies_data['Date'].dt.year)['Name'].nunique().to_dict()
     comments_by_year = comments_data.groupby(comments_data['Date'].dt.year)['Comment'].nunique().to_dict()
 
-    api = False
-    api = True
-
-    if api: run_api('e840a47026103ff8619463cb2716132d')
+    problems = 0
+    if api: run_api(api)
 
     g = watched_data.groupby(pd.Grouper(key='Date', freq='Y'))
     yearly_data = [group for df,group in g]
@@ -92,3 +103,4 @@ if __name__ == "clean_data":
         by_year[i] = extract_info(yearly_data[j], api)
         j += 1
     del yearly_data, watched_data
+    return overall, by_year, problems, comments_by_year, rewies_by_year
