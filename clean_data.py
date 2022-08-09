@@ -6,7 +6,7 @@ import requests
 def find_archive():
     for dirs, dir, files in os.walk('.'):
         for j in files:
-            if j.endswith('utc.zip') and j.startswith('letterboxd-'): return j
+            if j.endswith('.zip') and j.startswith('letterboxd-'): return j
 
 def extract_info(df, api, isyear=1):
     films_count = len(df)
@@ -19,8 +19,14 @@ def extract_info(df, api, isyear=1):
     if films_count > 10:
         keys = ['Name', 'Rating']
         if api: keys.append('Vote_average')
-        highest_rated = df.nlargest(5, 'Rating')[keys].to_dict(orient='records')
-        lowest_rated = df.nsmallest(5, 'Rating')[keys].to_dict(orient='records')
+        highest_rated = df.nlargest(5, 'Rating')[keys].to_dict(orient='list')
+        if len(highest_rated) == 3:
+            for i in range(5):
+                highest_rated['Rating'][i] = str(highest_rated['Rating'][i]) + '   |   ' + str(highest_rated['Vote_average'][i])
+        lowest_rated = df.nsmallest(5, 'Rating')[keys].to_dict(orient='list')
+        if len(lowest_rated) == 3:
+            for i in range(5):
+                lowest_rated['Rating'][i] = str(lowest_rated['Rating'][i]) + '   |   ' + str(lowest_rated['Vote_average'][i])
 
     else:
         highest_rated, lowest_rated = None, None
