@@ -103,10 +103,11 @@ def main(api=''):
     yearly_data = [group for df,group in g]
 
     overall = extract_info(watched_data, api, None)
-    by_year = dict.fromkeys(overall[5])
+    films_by_year = dict.fromkeys(overall[5])
     j = 0
-    for i in by_year.keys():
-        by_year[i] = extract_info(yearly_data[j], api)
+    for i in films_by_year.keys():
+        films_by_year[i] = extract_info(yearly_data[j], api)
         j += 1
+    films_by_year['Overall'] = overall
     del yearly_data, watched_data
-    return overall, by_year, problems, comments_by_year, rewies_by_year
+    return films_by_year, problems, comments_by_year, rewies_by_year
