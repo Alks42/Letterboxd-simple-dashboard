@@ -7,11 +7,12 @@ def find_archive():
     for dirs, dir, files in os.walk('.'):
         for j in files:
             if j.endswith('.zip') and j.startswith('letterboxd-'): return j
+            elif j == 'simple_data.zip': return j
 
 def extract_info(df, api, isyear=1):
     films_count = len(df)
     rating = df.groupby('Rating')['Name'].nunique().to_dict()
-    for i in range(11):
+    for i in range(1,11):
         if i/2 not in rating: rating[i/2] = 0
     rating = dict(sorted(rating.items()))
     avg_rating = "{:.1f}".format(df['Rating'].mean())
@@ -20,13 +21,12 @@ def extract_info(df, api, isyear=1):
         keys = ['Name', 'Rating']
         if api: keys.append('Vote_average')
         highest_rated = df.nlargest(5, 'Rating')[keys].to_dict(orient='list')
-        if len(highest_rated) == 3:
-            for i in range(5):
-                highest_rated['Rating'][i] = str(highest_rated['Rating'][i]) + '   |   ' + str(highest_rated['Vote_average'][i])
         lowest_rated = df.nsmallest(5, 'Rating')[keys].to_dict(orient='list')
-        if len(lowest_rated) == 3:
+        if len(keys) == 3:
             for i in range(5):
-                lowest_rated['Rating'][i] = str(lowest_rated['Rating'][i]) + '   |   ' + str(lowest_rated['Vote_average'][i])
+                highest_rated['Rating'][i] = str(highest_rated['Rating'][i]) + '   |   ' + '{:.1f}'.format(highest_rated['Vote_average'][i]/2)
+            for i in range(5):
+                lowest_rated['Rating'][i] = str(lowest_rated['Rating'][i]) + '   |   ' + '{:.1f}'.format(lowest_rated['Vote_average'][i]/2)
 
     else:
         highest_rated, lowest_rated = None, None
@@ -52,35 +52,28 @@ def main(api=''):
 
     def run_api(api_key):
         nonlocal watched_data, problems
-        genres, countries, runtime, vote_average = [], [], [], []
+        watched_data[['Country', 'Genres', 'Runtime', 'Vote_average']] = None
+        index = 0
         for film in watched_data['Name'].to_list():
             id = requests.get('https://api.themoviedb.org/3/search/movie?api_key=' + api_key + '&query=' + film)
             if id.status_code == 200 and id.json()['results']:
                 req = requests.get(
                     'https://api.themoviedb.org/3/movie/' + str(id.json()['results'][0]['id']) + '?api_key=' + api_key)
                 if req.status_code == 200:
-                    countries.append([country['name'] for country in req.json()['production_countries']])
-                    genres.append([genre['name'] for genre in req.json()['genres']])
-                    runtime.append(req.json()['runtime'])
-                    vote_average.append(req.json()['vote_average'])
+                    watched_data.at[index, 'Country'] = [country['name'].replace('United States of America', 'USA')
+                                                         if  country['name'] == 'United States of America' else
+                                                         country['name'].replace('United Kingdom', 'UK')
+                                                         for country in req.json()['production_countries']]
+                    watched_data.at[index, 'Genres'] = [genre['name'].replace('Science Fiction', 'Sci-Fi') for genre in req.json()['genres']]
+                    watched_data.at[index, 'Runtime'] = req.json()['runtime']
+                    watched_data.at[index, 'Vote_average'] = req.json()['vote_average']
                 else:
-                    countries.append([None])
-                    genres.append([None])
-                    runtime.append(None)
-                    vote_average.append(None)
                     problems += 1
                     # print(req.status_code, req.json(), watched_data.index[watched_data['Name'] == film].to_list())
             else:
-                countries.append([None])
-                genres.append([None])
-                runtime.append(None)
-                vote_average.append(None)
                 problems += 1
                 # print(id.status_code, id.json(), watched_data.index[watched_data['Name'] == film].to_list())
-        watched_data['Country'] = countries
-        watched_data['Genres'] = genres
-        watched_data['Runtime'] = runtime
-        watched_data['Vote_average'] = vote_average
+            index+=1
 
     with zipfile.ZipFile(find_archive()) as zf:
         watched_data = pd.merge(pd.read_csv(zf.open('watched.csv'))[ ['Name', 'Date'] ],

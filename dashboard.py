@@ -6,53 +6,62 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super(Ui_MainWindow, self).__init__()
         self.resize(1080, 800)
-        # self.setDockOptions(QtWidgets.QMainWindow.AllowTabbedDocks|QtWidgets.QMainWindow.AnimatedDocks)
 
         self.gridLayoutWidget = QtWidgets.QWidget()
         self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 1080, 1700))
         self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
+        self.gridLayout.setSpacing(0)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
 
-        # self.setAutoFillBackground(True)
-        # self.setStyleSheet('background-color: black')
+        self.setAutoFillBackground(True)
 
         self.setCentralWidget(self.gridLayoutWidget)
-        self.statusbar = QtWidgets.QStatusBar()
-        self.setStatusBar(self.statusbar)
-
-        self.frame_to_call_frame = QtWidgets.QFrame(self.gridLayoutWidget)
-        self.frame_to_call_frame.setMinimumWidth(30)
-        self.frame_to_call_frame.setStyleSheet("QFrame {border-radius:3;"
-                                               "background-color: rgb(200, 255, 255);"
-                       "border-right: 4 inset #000000;}"
-                       )
 
         # Side Frame
         self.side_frame = QtWidgets.QFrame(self.gridLayoutWidget)
-        self.side_layout = QtWidgets.QVBoxLayout(self.side_frame)
-
+        self.side_layout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.Direction.TopToBottom, self.side_frame)
+        self.side_frame.setObjectName('menu')
+        self.side_animation = QtCore.QPropertyAnimation(self.side_frame, b"maximumWidth", self)
+        self.side_animation.setDuration(200)
 
         for i in reversed(range(len(films_by_year.keys()))):
             year_button = QtWidgets.QPushButton(self.side_frame)
             year_button.clicked.connect(lambda x, i=i: self.stacked.setCurrentIndex(i))
             year_button.setText(str(list(films_by_year.keys())[i]))
+            year_button.setContentsMargins(5,5,5,5)
             self.side_layout.addWidget(year_button, 0, QtCore.Qt.AlignmentFlag.AlignTop)
 
+        self.stretch = QtWidgets.QLabel(self.side_frame)
+        self.side_layout.addWidget(self.stretch)
+        self.side_layout.setStretchFactor(self.stretch, 1)
         self.problem_label = QtWidgets.QLabel(self.side_frame)
+        self.problem_label.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
+        self.problem_label.setFrameShadow(QtWidgets.QFrame.Shadow.Plain)
+        self.problem_label.setContentsMargins(10,10,0,10)
+        self.side_width = self.problem_label.width() + 100
+
         self.form = QtWidgets.QLineEdit(self.side_frame)
         self.form.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Minimum)
         self.checkSave = QtWidgets.QCheckBox(self.side_frame)
         self.checkSave.setText('Save key')
         self.apply_button = QtWidgets.QPushButton(self.side_frame)
         self.apply_button.setText('Apply key')
+        self.apply_button.setObjectName('apply_btn')
+
         self.apply_button.clicked.connect(lambda x: self.restart_with_key(self.form.text()))
         self.checkSave.clicked.connect(lambda x: self.save_key(self.checkSave.checkState().value))
 
         self.checkLock = QtWidgets.QCheckBox(self.side_frame)
         self.checkLock.setText('Lock Side Menu')
-        self.label_bottom = QtWidgets.QLabel(self.side_frame)
-        self.label_bottom.setText('You\n Are\n Useless')
+        self.label_bottom = QtWidgets.QPushButton(self.side_frame)
+        self.label_bottom.setObjectName('bottom')
+        self.label_bottom.setText('How do i get my data?\nWhere can I get api key?')
+        self.label_bottom.clicked.connect(lambda x: webbrowser.open('https://google.com'))
+        self.label_bottom.setContentsMargins(5,5,5,5)
 
+
+        self.side_layout.setContentsMargins(30,30,20,20)
+        self.side_layout.setSpacing(15)
         self.side_layout.addWidget(self.problem_label, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
         self.side_layout.addWidget(self.form, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
         self.side_layout.addWidget(self.apply_button, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
@@ -60,20 +69,16 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.side_layout.addWidget(self.checkLock, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
         self.side_layout.addWidget(self.label_bottom, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
 
-        self.side_frame.setStyleSheet("QFrame {background-color: rgb(200, 255, 255);"
-                       "border-right: 4 solid #000000;}"
-                       )
+        ###################################################################################
 
-        #--------------------------------------------------------------------------------
-
-        self.gridLayout.addWidget(self.frame_to_call_frame, 0, 0, 1, 1)
         self.gridLayout.addWidget(self.side_frame, 0, 1, 1, 1)
 
         self.animation_duration = 512
+        self.bar_color = '#06ad00'
 
-        self.side_frame.hide()
         self.side_frame.installEventFilter(self)
-        self.frame_to_call_frame.installEventFilter(self)
+        # self.side_frame.setMaximumWidth(10)
+        self.checkLock.setChecked(True)
         self.stacked = False
         self.draw_stacked()
         self.restart_with_key(api_key)
@@ -88,9 +93,11 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             if not slc.isExploded():
                 year = str(slc.label())
                 year_cashe = year
+                slc.setLabelColor(QtGui.QColor('white'))
                 slc.setLabelPosition(QtCharts.QPieSlice.LabelPosition.LabelOutside)
                 slc.setLabel(value + ' ({}%)'.format(percent))
             else:
+                slc.setLabelColor(QtGui.QColor('black'))
                 slc.setLabelPosition(QtCharts.QPieSlice.LabelPosition.LabelInsideHorizontal)
                 slc.setLabel(year_cashe)
 
@@ -102,17 +109,21 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             table.setRowCount(2)
             table.horizontalHeader().hide()
             table.verticalHeader().hide()
-            table.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-            table.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
             for row in range(2):
                 key = list(data_table.keys())[row]
                 for column in range(5):
                     item = data_table[key][column]
-                    table.setItem(row, column, QtWidgets.QTableWidgetItem(str(item)))
-            table.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
+                    table.setItem(row, column, QtWidgets.QTableWidgetItem('      '+str(item)))
+                    table.item(row, column).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+
+            table.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+            table.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             table.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
-            table.resizeColumnsToContents()
+            table.horizontalHeader().setSectionResizeMode(QtWidgets.QTableWidget.horizontalHeader(table).ResizeMode.ResizeToContents)
+            table.setEditTriggers(QtWidgets.QTableWidget.EditTrigger.NoEditTriggers)
+            table.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
+            table.setSelectionMode(QtWidgets.QTableWidget.SelectionMode.NoSelection)
             return table
 
         if self.stacked:
@@ -122,97 +133,130 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.stacked = QtWidgets.QStackedWidget(self.gridLayoutWidget)
         self.gridLayout.addWidget(self.stacked, 0, 2, 1, 1)
 
-
         for year in films_by_year.keys():
             data = films_by_year[year]
             main_frame = QtWidgets.QFrame()
             main_frame.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding,
                                           QtWidgets.QSizePolicy.Policy.Expanding)
             gridLayout_mf = QtWidgets.QGridLayout(main_frame)
+            gridLayout_mf.setContentsMargins(10,10,20,0)
             gridLayout_mf.setSpacing(0)
 
             # middle chart
-            PieChart = QtCharts.QChart()
-            PieChart.setTitle('You wached '+str(data[0])+' films')
-            PieChart.setAnimationOptions(QtCharts.QChart.AnimationOption.SeriesAnimations)
-            PieChart.legend().setVisible(False)
-            PieChart.setAnimationDuration(self.animation_duration)
-            PieChart.setContentsMargins(-30, -30, -30, -30)
+            pie_chart = QtCharts.QChart()
+            pie_chart.setTitle('<center><br><br>You wached <br> '+str(data[0])+' films</center>')
+            pie_chart.setTitleFont(QtGui.QFont('Century Gothic', 14))
+            pie_chart.setTitleBrush(QtGui.QColor('white'))
+            pie_chart.setAnimationOptions(QtCharts.QChart.AnimationOption.SeriesAnimations)
+            pie_chart.legend().setVisible(False)
+            pie_chart.setAnimationDuration(self.animation_duration)
+            pie_chart.setMargins(QtCore.QMargins(-5, -5, -5, -5))
+            pie_chart.setBackgroundBrush(QtGui.QBrush(QtGui.QColor("transparent")))
 
             series = QtCharts.QPieSeries()
-            series.setHoleSize(0.35)
+            series.setHoleSize(0.3)
+            series.setPieSize(0.6)
 
             months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec']
+            green = 175
             for key, value in data[5].items():
                 slc = QtCharts.QPieSlice(str(key), value) if year =='Overall' else QtCharts.QPieSlice(months[key-1], value)
                 if value > 0: slc.setLabelVisible(True)
                 slc.setExplodeDistanceFactor(0.05)
+                slc.setBorderWidth(0)
+                slc.setLabelFont((QtGui.QFont('Segoe MDL2 Assets', 10)))
+                slc.setColor(QtGui.QColor(0,green,255))
+                green += 15
+                if green > 255: green = 200
                 slc.setLabelPosition(QtCharts.QPieSlice.LabelPosition.LabelInsideHorizontal)
                 slc.hovered.connect(lambda x, slc=slc, data=data: explode_slice(slc, data[0]))
                 series.append(slc)
 
-            PieChart.addSeries(series)
-            chart_view = QtCharts.QChartView(PieChart)
+            pie_chart.addSeries(series)
+            chart_view = QtCharts.QChartView(pie_chart)
             chart_view.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred,
                                      QtWidgets.QSizePolicy.Policy.Expanding)
+            chart_view.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing | QtGui.QPainter.RenderHint.TextAntialiasing)
             gridLayout_mf.addWidget(chart_view, 0, 1, 1, 1)
 
-            # Rating frame, reviews, comments
-            RatingFrame = QtWidgets.QFrame(main_frame)
-            ratinglayout = QtWidgets.QHBoxLayout(RatingFrame)
-            AvgRating = QtWidgets.QLabel(RatingFrame)
+            ###################################################################################
 
-            Rewievs = QtWidgets.QLabel(RatingFrame)
-            Comments = QtWidgets.QLabel(RatingFrame)
+            # Rating frame
+            rating_frame = QtWidgets.QFrame(main_frame)
+            ratinglayout = QtWidgets.QHBoxLayout(rating_frame)
+            avg_rate = QtWidgets.QLabel(rating_frame)
 
-            ratinglayout.addWidget(Comments)
-            ratinglayout.addWidget(self.create_bar(data[1]), QtCore.Qt.AlignmentFlag.AlignCenter)
-            ratinglayout.addWidget(AvgRating)
-            ratinglayout.addWidget(Rewievs)
+            rating_chart = self.create_bar(data[1])
+            rating_chart.setMinimumSize(315, 150)
 
+            avg_rate.setText(data[2] + '\nAvg')
+            avg_rate.setObjectName('avg')
+
+            ratinglayout.setSpacing(30)
+            ratinglayout.addWidget(rating_chart)
+            ratinglayout.addWidget(avg_rate)
+
+            ###################################################################################
+
+            # reviews, comments
+            reviews_label = QtWidgets.QLabel(rating_frame)
+            comments_label = QtWidgets.QLabel(rating_frame)
             if year=='Overall':
-                Comments.setText('You wrote comments\n' + str(sum(comments.values())))
-                Rewievs.setText('You wrote reviews\n' + str(sum(reviews.values())))
+                comments_label.setText('<center>You wrote<br>' + str(sum(comments.values())) + ' comments')
+                reviews_label.setText('<center>You wrote<br>' + str(sum(comments.values())) + '  reviews')
             else:
                 if year not in comments: comments[year] = 0
                 if year not in reviews: reviews[year] = 0
-                Comments.setText('You wrote comments\n' + str(comments[year]))
-                Rewievs.setText('You wrote reviews\n' + str(reviews[year]))
-            AvgRating.setText(data[2] + '\nAvg')
+                comments_label.setText('You wrote comments\n' + str(comments[year]))
+                reviews_label.setText('You wrote reviews\n' + str(reviews[year]))
 
-            RatingFrame.setMaximumHeight(200)
-            gridLayout_mf.addWidget(RatingFrame, 2, 0, 1, 3)
+            ratinglayout.addWidget(comments_label)
+            ratinglayout.addWidget(reviews_label)
+
+            gridLayout_mf.addWidget(rating_frame, 2, 1, 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
+            gridLayout_mf.addWidget(comments_label, 2, 0, 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
+            gridLayout_mf.addWidget(reviews_label, 2, 2, 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
+
+            ###################################################################################
+
+            # Api data if exists
+            if data[-1]:
+                geners_bar = self.create_bar(data[-1][0], True)
+                countries_bar = self.create_bar(data[-1][1], True)
+
+                geners_bar.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred,
+                                              QtWidgets.QSizePolicy.Policy.Expanding)
+                countries_bar.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred,
+                                              QtWidgets.QSizePolicy.Policy.Expanding)
+
+                gridLayout_mf.addWidget(countries_bar, 0, 2, 2, 1)
+                gridLayout_mf.addWidget(geners_bar, 0, 0, 2, 1)
+
+                film_time = QtWidgets.QLabel(main_frame)
+                film_time.setText('<center>You spent time:<br>' + "{:.0f}".format(data[-1][2]/60) + ' hours')
+                gridLayout_mf.addWidget(film_time, 1, 1, 1, 1)
+
+            ###################################################################################
+
+            # Tables if exists
+
             if data[3]:
                 # Best table
-                BestLabel = QtWidgets.QLabel(main_frame)
-                BestLabel.setText('----------------------Best--------------------')
-                BestTable = create_table(data[3])
+                best_label = QtWidgets.QLabel(main_frame)
+                best_label.setText('Top 5 highets rated films')
+                best_label.setObjectName('table_label')
+                best_table = create_table(data[3])
 
                 # Worst table
-                WorstLabel = QtWidgets.QLabel(main_frame)
-                WorstLabel.setText('---------------------Worst---------------------')
-                WorstTable = create_table(data[4])
+                worst_label = QtWidgets.QLabel(main_frame)
+                worst_label.setText('Top 5 lowest rated films')
+                worst_label.setObjectName('table_label')
+                worst_table = create_table(data[4])
 
-                gridLayout_mf.addWidget(BestLabel, 3, 0, 1, 3, QtCore.Qt.AlignmentFlag.AlignCenter)
-                gridLayout_mf.addWidget(BestTable, 4, 0, 1, 3, QtCore.Qt.AlignmentFlag.AlignCenter)
-                gridLayout_mf.addWidget(WorstLabel, 5, 0, 1, 3, QtCore.Qt.AlignmentFlag.AlignCenter)
-                gridLayout_mf.addWidget(WorstTable, 6, 0, 1, 3, QtCore.Qt.AlignmentFlag.AlignCenter)
-
-            if data[-1]:
-                GenersBar = self.create_bar(data[-1][0], True)
-                CountriesBar = self.create_bar(data[-1][1], True)
-
-                GenersBar.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred,
-                                              QtWidgets.QSizePolicy.Policy.Expanding)
-                CountriesBar.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred,
-                                              QtWidgets.QSizePolicy.Policy.Expanding)
-
-                gridLayout_mf.addWidget(CountriesBar, 0, 2, 2, 1)
-                gridLayout_mf.addWidget(GenersBar, 0, 0, 2, 1)
-
-                Filmtime = QtWidgets.QLabel(main_frame)
-                Filmtime.setText('You spent\n' + "{:.0f}".format(data[-1][2]//60) + ' hours\n' + 'watching films')
-                gridLayout_mf.addWidget(Filmtime, 1, 1, 1, 1)
+                gridLayout_mf.addWidget(best_label, 3, 0, 1, 3, QtCore.Qt.AlignmentFlag.AlignCenter)
+                gridLayout_mf.addWidget(best_table, 4, 0, 1, 3, QtCore.Qt.AlignmentFlag.AlignCenter)
+                gridLayout_mf.addWidget(worst_label, 5, 0, 1, 3, QtCore.Qt.AlignmentFlag.AlignCenter)
+                gridLayout_mf.addWidget(worst_table, 6, 0, 1, 3, QtCore.Qt.AlignmentFlag.AlignCenter)
 
             self.stacked.addWidget(main_frame)
         self.stacked.setCurrentIndex(len(films_by_year.keys())-1)
@@ -223,33 +267,59 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     def create_bar(self, df, isvertical=False):
 
+        self.bar_color = '#ed8e00' if self.bar_color != '#ed8e00' else '#06ad00'
+
         barchart = QtCharts.QChart()
+        barset = QtCharts.QBarSet('default')
         axis = QtCharts.QBarCategoryAxis()
+        barset.setBorderColor(QtGui.QColor(0,0,1))
 
         if not isvertical:
-            barchart.setTitle('Rating')
             bar_series = QtCharts.QBarSeries()
             bar_data = df
+            axis.setLineVisible(False)
+            bar_series.setBarWidth(1)
             barchart.addAxis(axis, QtCore.Qt.AlignmentFlag.AlignBottom)
             bar_series.setLabelsPosition(QtCharts.QBarSeries.LabelsPosition.LabelsOutsideEnd)
+            barset.setColor(QtGui.QColor('#575957'))
+
+            axisY = QtCharts.QValueAxis()
+            axisY.setVisible(False)
+            axisY.setRange(0, max(bar_data.values())*1.4)
+            barchart.addAxis(axisY, QtCore.Qt.AlignmentFlag.AlignLeft)
+
         else:
             bar_series = QtCharts.QHorizontalBarSeries()
+            axis.setLineVisible(False)
+            if len(df) < 10:
+                for i in range(10 - len(df)):
+                    df['\0'*i] = 0
             bar_data = dict(sorted(df.items(), key=lambda item: item[1])[-10:])
-            bar_series.setLabelsPosition(QtCharts.QBarSeries.LabelsPosition.LabelsInsideEnd)
+
+            bar_series.setLabelsPosition(QtCharts.QBarSeries.LabelsPosition.LabelsCenter)
             barchart.addAxis(axis, QtCore.Qt.AlignmentFlag.AlignLeft)
+            barset.setColor(QtGui.QColor(self.bar_color))
 
         axis.append(str(k) for k in bar_data.keys())
+        axis.setLabelsColor(QtGui.QColor('white'))
         axis.setGridLineVisible(False)
-        barset = QtCharts.QBarSet('default')
         barset.append(list(bar_data.values()))
+        barset.setLabelFont((QtGui.QFont('Segoe MDL2 Assets', 12)))
         bar_series.append(barset)
         barchart.addSeries(bar_series)
-        chart_view = QtCharts.QChartView(barchart)
+
+        if not isvertical: bar_series.attachAxis(axisY)
 
         barchart.setAnimationOptions(QtCharts.QChart.AnimationOption.SeriesAnimations)
         barchart.setAnimationDuration(self.animation_duration)
         barchart.legend().setVisible(False)
         bar_series.hovered.connect(lambda x: self.hovered(bar_series))
+        barchart.setMargins(QtCore.QMargins(-5,-5,-5,-5))
+        barchart.setBackgroundRoundness(0)
+        barchart.setBackgroundBrush(QtGui.QBrush(QtGui.QColor("transparent")))
+
+        chart_view = QtCharts.QChartView(barchart)
+        chart_view.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing | QtGui.QPainter.RenderHint.TextAntialiasing)
         return chart_view
 
     def save_key(self, state):
@@ -265,17 +335,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             self.save_key(self.checkSave.checkState().value)
             self.form.setText('')
 
-    def eventFilter(self, obj, event):
-        if obj is self.frame_to_call_frame and event.type() == QtCore.QEvent.Type.Enter:
-            self.frame_to_call_frame.hide()
-            self.side_frame.show()
-            return True
-        elif obj is self.side_frame and event.type() == QtCore.QEvent.Type.Leave and  self.checkLock.checkState().value == 0:
-            self.side_frame.hide()
-            self.frame_to_call_frame.show()
-            return True
-        return super().eventFilter(obj, event)
-
     def api_process_start(self):
         self.process = Api_process()
         self.process.start()
@@ -285,13 +344,31 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         global films_by_year, problems, comments, reviews
         if type(args) == str:
             self.problem_label.setText(args)
+            self.problem_label.setObjectName('notKey') if len(args) == 19 else self.problem_label.setObjectName('Key')
         else:
             films_by_year, problems, comments, reviews = args
-            if problems == 0: self.problem_label.setText('Ran into no films with problems.')
+            if problems == 0:
+                self.problem_label.setText('No errors occured\n with films.')
+                self.problem_label.setObjectName('notProblem')
             else:
-                self.problem_label.setText('Ran into ' + str(problems) + '\nfilms with problems.')
+                self.problem_label.setText('Errors occured with\n' + str(problems) + ' films.')
+                self.problem_label.setObjectName('Problem')
 
             self.draw_stacked()
+        self.setStyleSheet(style)
+
+    def eventFilter(self, obj, event):
+        if obj is self.side_frame and event.type() == QtCore.QEvent.Type.Enter and  self.checkLock.checkState().value == 0:
+            self.side_animation.setStartValue(10)
+            self.side_animation.setEndValue(self.side_width)
+            self.side_animation.start()
+            return True
+        elif obj is self.side_frame and event.type() == QtCore.QEvent.Type.Leave and  self.checkLock.checkState().value == 0:
+            self.side_animation.setStartValue(self.side_frame.width())
+            self.side_animation.setEndValue(10)
+            self.side_animation.start()
+            return True
+        return super().eventFilter(obj, event)
 
 
 class Api_process(QtCore.QThread):
@@ -313,10 +390,13 @@ if __name__ == "__main__":
     import sys
     import clean_data
     import requests
+    import webbrowser
 
     api_key = ''
     with open('YourAPIKey.txt') as f:
         api_key = f.read()
+    with open('Style.css') as f:
+        style = f.read()
 
     films_by_year, problems, comments, reviews = clean_data.main()
     app = QtWidgets.QApplication(sys.argv)

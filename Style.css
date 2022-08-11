@@ -1,0 +1,111 @@
+QChartView  {background-color: #151515;}
+
+QBarSeries {background-color: #151515}
+
+QBarSet {border-color: #262626;}
+
+QChart {background-color: #151515;}
+
+QMainWindow {background-color: #151515}
+
+QFrame#menu {background-color: #262626;
+          	border-right: 0 ridge grey;
+          	border-radius: 1}
+
+QTableWidget {background-color: #151515;
+          	border: 0 solid #151515;
+          	color: white;
+          	font-family: 'Berlin Sans FB';
+          	font-size: 16px}
+
+QLineEdit {border-radius: 2}
+
+QPushButton {border:2 solid #59bdeb; 
+			border-radius: 15;
+             background-color : #262626;
+             padding: 6px 6px 6px 6px;
+             color: white;
+             font-size: 14px;
+         	font-family:  'Century Gothic';}
+
+QPushButton:hover {background-color : #8dcdeb; 
+					border-width: 0;
+					color: black;
+					 font-weight: bold}
+
+QPushButton:focus {background-color : #59bdeb; 
+					color: black; 
+					font-weight: bold}
+
+QPushButton#apply_btn {background-color : #262626; 
+						color: white; 
+						font-weight: normal; 
+						border-color: #5f7078}
+
+QPushButton#apply_btn:hover {background-color : #5f7078; 
+							font-weight: normal; 
+							border-color: #5f7078}
+
+QCheckBox {background-color: #262626; 
+			border: 0px solid;
+			color: white}
+QCheckBox::indicator {border-radius: 6px; 
+					  border: 3px solid #525151;}
+QCheckBox::indicator:checked {border-radius: 6px; 
+							background-color:  #06ad00;}
+
+QPushButton#bottom {font-family: 'Lato Light';
+				font-size: 10pt;
+				color: #6c9abd;
+				text-decoration: underline;
+				border: 2 ridge #525151;
+				background-color: #3b3b3b}
+
+
+QLabel {color: white;
+		margin: 10,10,10,10;
+		border-radius: 4;
+		font-family: 'Microsoft YaHei UI Light';
+		font-size: 14pt;
+	}
+
+
+QLabel#table_label {font-family: 'Century Gothic';
+					text-decoration: underline}
+
+
+QLabel#avg {
+			font-family: 'Times New Roman';
+			font-size: 18pt;
+			}
+
+QLabel#Key  {color: #003d66;
+			background-color: #b3e0ff;
+			border: 2 ridge #007acc;
+			font-size: 13px;
+			font-family: 'Bookman Old Style';	
+		}
+
+QLabel#notKey  {color: #666600;
+				background-color: #ffffb3;
+				border: 2 ridge  #cccc00;
+				font-size: 13px;	
+				font-family: 'Bookman Old Style';	
+		
+			}
+
+QLabel#Problem  {color: #660000;
+				 background-color: #ffb3b3;
+				 border: 2 ridge #cc0000;
+				 font-size: 13px;
+				 font-family: 'Bookman Old Style';	
+	
+			}
+
+QLabel#notProblem  {color: #006600;
+					background-color: #b3ffb3;
+					border: 2 ridge  #00cc00;
+					font-size: 13px;
+					font-family: 'Bookman Old Style';	
+	
+				}
