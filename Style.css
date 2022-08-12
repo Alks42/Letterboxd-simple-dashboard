@@ -71,8 +71,10 @@ QPushButton#tmdb {font-family: 'Lato Light';
 QCheckBox {background-color: #262626; 
 			border: 0px solid;
 			color: white}
+
 QCheckBox::indicator {border-radius: 6px; 
 					  border: 3px solid #525151;}
+					  
 QCheckBox::indicator:checked {border-radius: 6px; 
 							background-color:  #06ad00;}
 

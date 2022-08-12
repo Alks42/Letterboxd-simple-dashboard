@@ -8,7 +8,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.resize(1080, 800)
 
         self.gridLayoutWidget = QtWidgets.QWidget()
-        self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 1080, 1700))
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 0, 1080, 800))
         self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setSpacing(0)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
@@ -16,7 +16,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.setWindowIcon(QtGui.QIcon('lsa.ico'))
 
         self.setAutoFillBackground(True)
-
         self.setCentralWidget(self.gridLayoutWidget)
 
         # Side Frame
@@ -37,11 +36,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.side_layout.addWidget(self.stretch)
         self.side_layout.setStretchFactor(self.stretch, 1)
         self.problem_label = QtWidgets.QLabel(self.side_frame)
-        self.problem_label.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
-        self.problem_label.setFrameShadow(QtWidgets.QFrame.Shadow.Plain)
         self.problem_label.setContentsMargins(10,10,0,10)
         self.side_width = self.problem_label.width() + 100
 
+            # api key
         self.form = QtWidgets.QLineEdit(self.side_frame)
         self.form.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Minimum)
         self.checkSave = QtWidgets.QCheckBox(self.side_frame)
@@ -55,6 +53,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         self.checkLock = QtWidgets.QCheckBox(self.side_frame)
         self.checkLock.setText('Lock Side Menu')
+
+            #label with queistions
         self.label_bottom = QtWidgets.QPushButton(self.side_frame)
         self.label_bottom.setObjectName('bottom')
         self.label_bottom.setText('How do i get my data?\nWhere can I get api key?')
@@ -74,7 +74,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         ###################################################################################
 
-        # tmdb
+        # tmdb label
         self.tmdb = QtWidgets.QPushButton()
         self.tmdb.setObjectName('tmdb')
         self.tmdb.setText('Film data was provided by TMDB')
@@ -86,8 +86,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.bar_color = '#06ad00'
 
         self.side_frame.installEventFilter(self)
+        # coment first and uncoment second to keep side menu on start
         # self.side_frame.setMaximumWidth(10)
         self.checkLock.setChecked(True)
+
         self.stacked = False
         self.draw_stacked()
         self.restart_with_key(api_key)
@@ -107,7 +109,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 slc.setLabel(value + ' ({}%)'.format(percent))
             else:
                 slc.setLabelColor(QtGui.QColor('black'))
-                slc.setLabelPosition(QtCharts.QPieSlice.LabelPosition.LabelInsideHorizontal)
+                slc.setLabelPosition(QtCharts.QPieSlice.LabelPosition.LabelInsideNormal)
                 slc.setLabel(year_cashe)
 
             slc.setExploded(not slc.isExploded())
@@ -126,6 +128,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     table.setItem(row, column, QtWidgets.QTableWidgetItem('      '+str(item)))
                     table.item(row, column).setTextAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
+            # it would be much easier to use Qlabels instead
             table.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             table.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
             table.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
@@ -135,6 +138,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             table.setSelectionMode(QtWidgets.QTableWidget.SelectionMode.NoSelection)
             return table
 
+        # clear widget
         if self.stacked:
             self.stacked.setParent(None)
         year_cashe = 0
@@ -142,6 +146,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.stacked = QtWidgets.QStackedWidget(self.gridLayoutWidget)
         self.gridLayout.addWidget(self.stacked, 0, 1, 1, 1)
 
+        # draw for every year
         for year in films_by_year.keys():
             data = films_by_year[year]
             main_frame = QtWidgets.QFrame()
@@ -153,7 +158,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
             # middle chart
             pie_chart = QtCharts.QChart()
-            pie_chart.setTitle('<center><br><br>You wached <br> '+str(data[0])+' films</center>')
+            pie_chart.setTitle('<center>You wached <br> '+str(data[0])+' films</center>')
             pie_chart.setTitleFont(QtGui.QFont('Century Gothic', 14))
             pie_chart.setTitleBrush(QtGui.QColor('white'))
             pie_chart.setAnimationOptions(QtCharts.QChart.AnimationOption.SeriesAnimations)
@@ -177,7 +182,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                 slc.setColor(QtGui.QColor(0,green,255))
                 green += 15
                 if green > 255: green = 200
-                slc.setLabelPosition(QtCharts.QPieSlice.LabelPosition.LabelInsideHorizontal)
+                slc.setLabelPosition(QtCharts.QPieSlice.LabelPosition.LabelInsideNormal)
                 slc.hovered.connect(lambda x, slc=slc, data=data: explode_slice(slc, data[0]))
                 series.append(slc)
 
@@ -271,6 +276,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.stacked.setCurrentIndex(len(films_by_year.keys())-1)
 
     def hovered(self, series):
+        # i haven't found a  way to interact with individual bar of a bar chart so it will display data for all bars
         if series.isLabelsVisible(): series.setLabelsVisible(False)
         else: series.setLabelsVisible(True)
 
@@ -292,6 +298,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             bar_series.setLabelsPosition(QtCharts.QBarSeries.LabelsPosition.LabelsOutsideEnd)
             barset.setColor(QtGui.QColor('#575957'))
 
+            # make plot area slightly bigger to fit lables
             axisY = QtCharts.QValueAxis()
             axisY.setVisible(False)
             axisY.setRange(0, max(bar_data.values())*1.4)
@@ -391,6 +398,7 @@ class Api_process(QtCore.QThread):
         global api_key
         if api_key:
             self.update.emit("Handaling data. \nIt might take a while.")
+            # just check to make sure api_key is valid
             sc = requests.get('https://api.themoviedb.org/3/search/movie?api_key=' + api_key + '&query=Memento')
             if sc.status_code != 200:
                 self.update.emit("No valid key found!")

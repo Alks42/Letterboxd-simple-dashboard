@@ -18,6 +18,7 @@ def extract_info(df, api, isyear=1):
     avg_rating = "{:.1f}".format(df['Rating'].mean())
 
     if films_count > 10:
+        # top five best & worst films if there are more then 10 films
         keys = ['Name', 'Rating']
         if api: keys.append('Vote_average')
         highest_rated = df.nlargest(5, 'Rating')[keys].to_dict(orient='list')
@@ -32,6 +33,7 @@ def extract_info(df, api, isyear=1):
         highest_rated, lowest_rated = None, None
 
     if isyear:
+        # num films by month/year
         count_by_period = df.groupby(df['Date'].dt.month)['Name'].nunique().to_dict()
         for i in range(1, 13):
             if i not in count_by_period: count_by_period[i] = 0
@@ -55,6 +57,8 @@ def main(api=''):
         watched_data[['Country', 'Genres', 'Runtime', 'Vote_average']] = None
         index = 0
         for film in watched_data['Name'].to_list():
+            # looks a bit stupid, but you really need to request general info
+            # find an id and only then get detailed info with id
             id = requests.get('https://api.themoviedb.org/3/search/movie?api_key=' + api_key + '&query=' + film)
             if id.status_code == 200 and id.json()['results']:
                 req = requests.get(
@@ -68,9 +72,11 @@ def main(api=''):
                     watched_data.at[index, 'Runtime'] = req.json()['runtime']
                     watched_data.at[index, 'Vote_average'] = req.json()['vote_average']
                 else:
+                    # probably internet conection
                     problems += 1
                     # print(req.status_code, req.json(), watched_data.index[watched_data['Name'] == film].to_list())
             else:
+                # probably tv series or so
                 problems += 1
                 # print(id.status_code, id.json(), watched_data.index[watched_data['Name'] == film].to_list())
             index+=1
@@ -82,6 +88,7 @@ def main(api=''):
         rewies_data = pd.read_csv(zf.open('reviews.csv'))
         comments_data = pd.read_csv(zf.open('comments.csv'))
 
+    # make Date column type actually a date type
     watched_data['Date']= pd.to_datetime(watched_data['Date'])
     rewies_data['Date']= pd.to_datetime(rewies_data['Date'])
     comments_data['Date']= pd.to_datetime(comments_data['Date'])
@@ -92,6 +99,7 @@ def main(api=''):
     problems = 0
     if api: run_api(api)
 
+    # make list of dfs by spliting by year wached_data
     g = watched_data.groupby(pd.Grouper(key='Date', freq='Y'))
     yearly_data = [group for df,group in g]
 
