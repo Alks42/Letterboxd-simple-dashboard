@@ -292,7 +292,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         if not isvertical:
             bar_series = QtCharts.QBarSeries()
             bar_data = df
-            axis.setLineVisible(False)
             bar_series.setBarWidth(1)
             barchart.addAxis(axis, QtCore.Qt.AlignmentFlag.AlignBottom)
             bar_series.setLabelsPosition(QtCharts.QBarSeries.LabelsPosition.LabelsOutsideEnd)
@@ -306,16 +305,15 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         else:
             bar_series = QtCharts.QHorizontalBarSeries()
-            axis.setLineVisible(False)
             if len(df) < 10:
                 for i in range(10 - len(df)):
                     df['\0'*i] = 0
             bar_data = dict(sorted(df.items(), key=lambda item: item[1])[-10:])
-
             bar_series.setLabelsPosition(QtCharts.QBarSeries.LabelsPosition.LabelsCenter)
             barchart.addAxis(axis, QtCore.Qt.AlignmentFlag.AlignLeft)
             barset.setColor(QtGui.QColor(self.bar_color))
 
+        axis.setLineVisible(False)
         axis.append(str(k) for k in bar_data.keys())
         axis.setLabelsColor(QtGui.QColor('white'))
         axis.setGridLineVisible(False)
