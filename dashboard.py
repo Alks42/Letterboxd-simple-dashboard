@@ -12,6 +12,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.gridLayout = QtWidgets.QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setSpacing(0)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.setWindowTitle('Letterboxd Simple Dashboard')
+        self.setWindowIcon(QtGui.QIcon('lsa.ico'))
 
         self.setAutoFillBackground(True)
 
@@ -59,7 +61,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.label_bottom.clicked.connect(lambda x: webbrowser.open('https://google.com'))
         self.label_bottom.setContentsMargins(5,5,5,5)
 
-
         self.side_layout.setContentsMargins(30,30,20,20)
         self.side_layout.setSpacing(15)
         self.side_layout.addWidget(self.problem_label, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
@@ -69,9 +70,17 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.side_layout.addWidget(self.checkLock, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
         self.side_layout.addWidget(self.label_bottom, 0, QtCore.Qt.AlignmentFlag.AlignBottom)
 
+        self.gridLayout.addWidget(self.side_frame, 0, 0, 3, 1)
+
         ###################################################################################
 
-        self.gridLayout.addWidget(self.side_frame, 0, 1, 1, 1)
+        # tmdb
+        self.tmdb = QtWidgets.QPushButton()
+        self.tmdb.setObjectName('tmdb')
+        self.tmdb.setText('Film data was provided by TMDB')
+        self.tmdb.clicked.connect(lambda x: webbrowser.open('https://www.themoviedb.org/'))
+
+        ###################################################################################
 
         self.animation_duration = 512
         self.bar_color = '#06ad00'
@@ -131,7 +140,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         year_cashe = 0
 
         self.stacked = QtWidgets.QStackedWidget(self.gridLayoutWidget)
-        self.gridLayout.addWidget(self.stacked, 0, 2, 1, 1)
+        self.gridLayout.addWidget(self.stacked, 0, 1, 1, 1)
 
         for year in films_by_year.keys():
             data = films_by_year[year]
@@ -154,7 +163,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             pie_chart.setBackgroundBrush(QtGui.QBrush(QtGui.QColor("transparent")))
 
             series = QtCharts.QPieSeries()
-            series.setHoleSize(0.3)
+            series.setHoleSize(0.25)
             series.setPieSize(0.6)
 
             months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec']
@@ -202,13 +211,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             reviews_label = QtWidgets.QLabel(rating_frame)
             comments_label = QtWidgets.QLabel(rating_frame)
             if year=='Overall':
-                comments_label.setText('<center>You wrote<br>' + str(sum(comments.values())) + ' comments')
-                reviews_label.setText('<center>You wrote<br>' + str(sum(comments.values())) + '  reviews')
+                comments_label.setText('<center>You wrote:<br>' + str(sum(comments.values())) + ' comments')
+                reviews_label.setText('<center>You wrote:<br>' + str(sum(comments.values())) + '  reviews')
             else:
                 if year not in comments: comments[year] = 0
                 if year not in reviews: reviews[year] = 0
-                comments_label.setText('You wrote comments\n' + str(comments[year]))
-                reviews_label.setText('You wrote reviews\n' + str(reviews[year]))
+                comments_label.setText('<center>You wrote:<br>' + str(comments[year]) + ' comments')
+                reviews_label.setText('<center>You wrote:<br>' + str(reviews[year]) + '  reviews')
 
             ratinglayout.addWidget(comments_label)
             ratinglayout.addWidget(reviews_label)
@@ -353,9 +362,13 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             else:
                 self.problem_label.setText('Errors occured with\n' + str(problems) + ' films.')
                 self.problem_label.setObjectName('Problem')
+                self.gridLayout.addWidget(self.tmdb, 1, 1, 1, 1)
 
             self.draw_stacked()
+        # for some reason if you not hide frame it will double border size of hovered button
+        self.side_frame.hide()
         self.setStyleSheet(style)
+        self.side_frame.show()
 
     def eventFilter(self, obj, event):
         if obj is self.side_frame and event.type() == QtCore.QEvent.Type.Enter and  self.checkLock.checkState().value == 0:

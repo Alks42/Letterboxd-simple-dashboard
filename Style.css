@@ -21,8 +21,8 @@ QTableWidget {background-color: #151515;
 QLineEdit {border-radius: 2}
 
 QPushButton {border:2 solid #59bdeb; 
-			border-radius: 15;
              background-color : #262626;
+             border-radius: 15;
              padding: 6px 6px 6px 6px;
              color: white;
              font-size: 14px;
@@ -31,11 +31,13 @@ QPushButton {border:2 solid #59bdeb;
 QPushButton:hover {background-color : #8dcdeb; 
 					border-width: 0;
 					color: black;
-					 font-weight: bold}
+					font-weight: bold;
+					}
 
 QPushButton:focus {background-color : #59bdeb; 
 					color: black; 
-					font-weight: bold}
+					font-weight: bold;
+					}
 
 QPushButton#apply_btn {background-color : #262626; 
 						color: white; 
@@ -46,6 +48,26 @@ QPushButton#apply_btn:hover {background-color : #5f7078;
 							font-weight: normal; 
 							border-color: #5f7078}
 
+QPushButton#bottom {font-family: 'Lato Light';
+				font-size: 10pt;
+				font-weight: normal; 
+				color: #6c9abd;
+				text-decoration: underline;
+				border: 2 ridge #525151;
+				border-radius: 1;
+				background-color: #3b3b3b;
+				text-align:left;}
+
+QPushButton#tmdb {font-family: 'Lato Light';
+				font-size: 10pt;
+				font-weight: normal; 
+				color: #525151;
+				border: 0 ridge #151515;
+				border-radius: 0;
+				background-color: #151515;
+				text-align:right;}
+
+
 QCheckBox {background-color: #262626; 
 			border: 0px solid;
 			color: white}
@@ -53,13 +75,6 @@ QCheckBox::indicator {border-radius: 6px;
 					  border: 3px solid #525151;}
 QCheckBox::indicator:checked {border-radius: 6px; 
 							background-color:  #06ad00;}
-
-QPushButton#bottom {font-family: 'Lato Light';
-				font-size: 10pt;
-				color: #6c9abd;
-				text-decoration: underline;
-				border: 2 ridge #525151;
-				background-color: #3b3b3b}
 
 
 QLabel {color: white;
@@ -71,7 +86,9 @@ QLabel {color: white;
 
 
 QLabel#table_label {font-family: 'Century Gothic';
-					text-decoration: underline}
+					border-bottom: 1px solid white;
+					border-radius: 0
+				}
 
 
 QLabel#avg {
