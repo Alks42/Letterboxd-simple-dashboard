@@ -58,7 +58,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.label_bottom = QtWidgets.QPushButton(self.side_frame)
         self.label_bottom.setObjectName('bottom')
         self.label_bottom.setText('How do i get my data?\nWhere can I get api key?')
-        self.label_bottom.clicked.connect(lambda x: webbrowser.open('https://google.com'))
+        self.label_bottom.clicked.connect(lambda x: webbrowser.open('https://github.com/Alks42/Letterboxd-simple-dashboard'))
         self.label_bottom.setContentsMargins(5,5,5,5)
 
         self.side_layout.setContentsMargins(30,30,20,20)
