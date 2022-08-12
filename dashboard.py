@@ -15,7 +15,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle('Letterboxd Simple Dashboard')
         self.setWindowIcon(QtGui.QIcon('lsa.ico'))
 
-        self.setAutoFillBackground(True)
+        self.setAutoFillBackground(False)
         self.setCentralWidget(self.gridLayoutWidget)
 
         # Side Frame
@@ -337,17 +337,17 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         return chart_view
 
     def save_key(self, state):
-        if state == 2 and len(self.form.text()) > 30:
+        sc = requests.get('https://api.themoviedb.org/3/search/movie?api_key=' + api_key + '&query=Memento')
+        if state == 2 and len(self.form.text()) > 30 and sc.status_code == 200:
             with open('YourAPIKey.txt', 'w') as f:
                 f.write(self.form.text().strip())
 
     def restart_with_key(self, api_key_new):
         global api_key
-        if api_key_new:
-            api_key = api_key_new
-            self.api_process_start()
-            self.save_key(self.checkSave.checkState().value)
-            self.form.setText('')
+        api_key = api_key_new
+        self.api_process_start()
+        self.save_key(self.checkSave.checkState().value)
+        self.form.setText('')
 
     def api_process_start(self):
         self.process = Api_process()
@@ -394,15 +394,11 @@ class Api_process(QtCore.QThread):
 
     def run(self):
         global api_key
-        if api_key:
-            self.update.emit("Handaling data. \nIt might take a while.")
-            # just check to make sure api_key is valid
-            sc = requests.get('https://api.themoviedb.org/3/search/movie?api_key=' + api_key + '&query=Memento')
-            if sc.status_code != 200:
-                self.update.emit("No valid key found!")
-                api_key = ''
-            else:
-                self.update.emit(clean_data.main(api_key))
+        self.update.emit("Handaling data. \nIt might take a while.")
+        # just check to make sure api_key is valid
+        sc = requests.get('https://api.themoviedb.org/3/search/movie?api_key=' + api_key + '&query=Memento')
+        if sc.status_code != 200: self.update.emit("No valid key found!")
+        else: self.update.emit(clean_data.main(api_key))
 
 
 if __name__ == "__main__":
