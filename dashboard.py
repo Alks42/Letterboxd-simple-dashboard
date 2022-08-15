@@ -256,7 +256,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             if data[3]:
                 # Best table
                 best_label = QtWidgets.QLabel(main_frame)
-                best_label.setText('Top 5 highets rated films')
+                best_label.setText('Top 5 highest rated films')
                 best_label.setObjectName('table_label')
                 best_table = create_table(data[3])
 
@@ -275,7 +275,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.stacked.setCurrentIndex(len(films_by_year.keys())-1)
 
     def hovered(self, series):
-        # i haven't found a  way to interact with individual bar of a bar chart so it will display data for all bars
+        # i haven't found a way to interact with individual bar of a bar chart so it will display data for all bars
         if series.isLabelsVisible(): series.setLabelsVisible(False)
         else: series.setLabelsVisible(True)
 
@@ -366,10 +366,10 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
             else:
                 self.problem_label.setText('Errors occured with\n' + str(problems) + ' films.')
                 self.problem_label.setObjectName('Problem')
-                self.gridLayout.addWidget(self.tmdb, 1, 1, 1, 1)
+            self.gridLayout.addWidget(self.tmdb, 1, 1, 1, 1)
 
             self.draw_stacked()
-        # for some reason if you not hide frame it will double border size of hovered button
+        # for some reason if you do not hide frame it will double border size of hovered button
         self.side_frame.hide()
         self.setStyleSheet(style)
         self.side_frame.show()
