@@ -1,3 +1,10 @@
+#####################################################################################
+# This file basically for peaople like me who created lists with films that they'd wached long
+# time ago. But since there is no way to tell that to letterboxd these people
+# (well, me at least) also created lists for each year. To use it just put
+# import alternative_clean_data as clean_data instead of import clean_data
+# and rewrite filter.
+#####################################################################################
 import pandas as pd
 import zipfile
 import os
@@ -82,7 +89,16 @@ def main(api=''):
             index += 1
 
     with zipfile.ZipFile(find_archive()) as zf:
+        ############################### different part ##################################
+        year_lists = []
+        for i in zf.namelist(): # filter
+            if i.startswith('lists/20'): year_lists.append(i)
+
+        wached_data_by_year = pd.concat(pd.read_csv(zf.open(i))['Name'] for i in year_lists)
         watched_data = pd.merge(pd.read_csv(zf.open('watched.csv'))[ ['Name', 'Date'] ],
+                                wached_data_by_year, on='Name')
+        #####################################################################################
+        watched_data = pd.merge(watched_data,
                                 pd.read_csv(zf.open('ratings.csv'))[ ['Name', 'Rating'] ],
                                 on='Name')
         rewies_data = pd.read_csv(zf.open('reviews.csv'))

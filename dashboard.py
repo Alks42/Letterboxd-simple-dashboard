@@ -1,6 +1,5 @@
 from PyQt6 import QtCore, QtGui, QtWidgets, QtCharts
 
-
 class Ui_MainWindow(QtWidgets.QMainWindow):
 
     def __init__(self):
@@ -403,6 +402,7 @@ class Api_process(QtCore.QThread):
 
 if __name__ == "__main__":
     import sys
+    # import alternative_clean_data as clean_data
     import clean_data
     import requests
     import webbrowser
