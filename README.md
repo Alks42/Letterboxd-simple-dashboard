@@ -16,7 +16,7 @@ Analyzes your letterboxd data to create several charts and display other statist
 - Run dashboard.py
 
 _(Optional, but highly recommended)_
-- Register on tmdb website and [request api key.](https://developers.themoviedb.org/3/getting-started/introduction). Without api data you won't see countries and geners charts, total runtime and average rating acording to tmdb.
+- Register on tmdb website and [request api key.](https://developers.themoviedb.org/3/getting-started/introduction) Without api data you won't see countries and geners charts, total runtime and average rating acording to tmdb.
 - The TMDB allows for 30-40 API requests every 10 seconds, so if you have hundreds of movies it could factor into the performance time.
 
 ## Explaining some interface details
