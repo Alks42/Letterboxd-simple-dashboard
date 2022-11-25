@@ -11,18 +11,16 @@ class Page_with_data(QtWidgets.QFrame):
         self.setLayout(self.gridLayout_mf)
         self.gridLayout_mf.setContentsMargins(10, 10, 20, 0)
         self.gridLayout_mf.setSpacing(0)
-
         # middle chart
         self.pie_chart = QtCharts.QChart()
         self.series = QtCharts.QPieSeries()
         self.pie_chart.addSeries(self.series)
         self.setup_pie_chart()
         self.chart_view = QtCharts.QChartView(self.pie_chart)
-        self.chart_view.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Expanding)
+        self.chart_view.setSizePolicy(QtWidgets.QSizePolicy.Policy.MinimumExpanding, QtWidgets.QSizePolicy.Policy.Expanding)
         self.chart_view.setRenderHint(
             QtGui.QPainter.RenderHint.Antialiasing | QtGui.QPainter.RenderHint.TextAntialiasing)
         self.gridLayout_mf.addWidget(self.chart_view, 0, 1, 1, 1)
-        # Rating frame
         self.rating_frame = QtWidgets.QFrame()
         self.avg_rate = QtWidgets.QLabel(self.rating_frame)
         self.rating_layout = QtWidgets.QHBoxLayout(self.rating_frame)
@@ -38,20 +36,18 @@ class Page_with_data(QtWidgets.QFrame):
         self.rating_layout.addWidget(self.avg_rate)
         self.rating_layout.addWidget(self.reviews_label)
 
-        self.gridLayout_mf.addWidget(self.rating_frame, 2, 1, 1, 1, QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.gridLayout_mf.addWidget(self.rating_frame, 2, 0, 1, 3, QtCore.Qt.AlignmentFlag.AlignCenter)
         # api data if exists
         if self.data[-1]:
             self.geners_bar = self.create_bar(self.data[-1][0], True)
             self.countries_bar = self.create_bar(self.data[-1][1], True)
-            self.geners_bar.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred,
-                                          QtWidgets.QSizePolicy.Policy.Expanding)
-            self.countries_bar.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred,
-                                             QtWidgets.QSizePolicy.Policy.Expanding)
+            self.geners_bar.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
+            self.countries_bar.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
             self.film_time = QtWidgets.QLabel()
             self.film_time.setText('<center>You spent time:<br>' + "{:.0f}".format(self.data[-1][2] / 60) + ' hours')
 
-            self.gridLayout_mf.addWidget(self.countries_bar, 0, 2, 2, 1)
-            self.gridLayout_mf.addWidget(self.geners_bar, 0, 0, 2, 1)
+            self.gridLayout_mf.addWidget(self.countries_bar, 0, 2, 1, 1)
+            self.gridLayout_mf.addWidget(self.geners_bar, 0, 0, 1, 1)
             self.gridLayout_mf.addWidget(self.film_time, 1, 1, 1, 1)
         # Tables if exists
         if self.data[3]:
@@ -88,14 +84,13 @@ class Page_with_data(QtWidgets.QFrame):
             slc.setExploded(not slc.isExploded())
 
         year_cashe = 0
-
         self.pie_chart.setTitle('<center>You wached <br> ' + str(self.data[0]) + ' films</center>')
         self.pie_chart.setTitleFont(QtGui.QFont('Century Gothic', 14))
         self.pie_chart.setTitleBrush(QtGui.QColor('white'))
         self.pie_chart.setAnimationOptions(QtCharts.QChart.AnimationOption.SeriesAnimations)
         self.pie_chart.legend().setVisible(False)
         self.pie_chart.setAnimationDuration(512)
-        self.pie_chart.setMargins(QtCore.QMargins(-5, -5, -5, -5))
+        self.pie_chart.setMargins(QtCore.QMargins(-5, 0, -5, -42))
         self.pie_chart.setBackgroundBrush(QtGui.QBrush(QtGui.QColor("transparent")))
 
         self.series.setHoleSize(0.25)
@@ -164,6 +159,7 @@ class Page_with_data(QtWidgets.QFrame):
         axis.append(str(k) for k in bar_data)
         axis.setLabelsColor(QtGui.QColor('white'))
         axis.setGridLineVisible(False)
+        axis.setTruncateLabels(False)
         barset.append(list(bar_data.values()))
         barset.setLabelFont((QtGui.QFont('Segoe MDL2 Assets', 12)))
         bar_series.append(barset)
@@ -178,6 +174,7 @@ class Page_with_data(QtWidgets.QFrame):
         barchart.setBackgroundBrush(QtGui.QBrush(QtGui.QColor("transparent")))
 
         chart_view = QtCharts.QChartView(barchart)
+        chart_view.setBackgroundBrush(QtGui.QBrush(QtGui.QColor("transparent")))
         chart_view.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing | QtGui.QPainter.RenderHint.TextAntialiasing)
         return chart_view
 
@@ -301,7 +298,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         # draw for every year
         for year in films_by_year:
             page = Page_with_data(films_by_year[year], year)
-            page.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
             self.stacked.addWidget(page)
         self.stacked.setCurrentIndex(len(films_by_year) - 1)
 
@@ -327,6 +323,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.process.update.connect(self.process_update)
 
     def process_update(self, args):
+        global films_by_year, problems, comments, reviews
         if type(args) == str:
             self.problem_label.setText(args)
             self.problem_label.setObjectName('notKey') if len(args) <= 19 else self.problem_label.setObjectName('Key')
@@ -366,8 +363,8 @@ class Api_process(QtCore.QThread):
     def run(self):
         global api_key
         self.update.emit("Handaling data. \nIt might take a while.")
-        # just check to make sure api_key is valid
         try:
+            # check to make sure api_key is valid
             sc = requests.get('https://api.themoviedb.org/3/search/movie?api_key=' + api_key + '&query=Memento')
             if sc.status_code == 200:
                 self.update.emit(clean_data.main(api_key))

@@ -19,6 +19,7 @@ def extract_info(df, api, is_year=True):
     [rating.update({i / 2: 0}) for i in range(1, 11) if i / 2 not in rating]
     rating = dict(sorted(rating.items()))
     avg_rating = "{:.1f}".format(df['Rating'].mean())
+    highest_rated, lowest_rated, api_data = None, None, []
     if films_count > 10:
         # top five best & worst films if there are more then 10 films
         keys = ['Name', 'Rating']
@@ -26,12 +27,10 @@ def extract_info(df, api, is_year=True):
         highest_rated = df.nlargest(5, 'Rating')[keys].to_dict(orient='list')
         lowest_rated = df.nsmallest(5, 'Rating')[keys].to_dict(orient='list')
         if len(keys) == 3:
-            for i in range(5):
-                highest_rated['Rating'][i] = f"{highest_rated['Rating'][i]}  |  {highest_rated['Vote_average'][i] / 2}.1f"
-                lowest_rated['Rating'][i] = f"{lowest_rated['Rating'][i]}  |  {lowest_rated['Vote_average'][i] / 2}.1f"
-    else:
-        highest_rated, lowest_rated = None, None
-
+            highest_rated['Rating'] = [f"{highest_rated['Rating'][i]}  |  {highest_rated['Vote_average'][i] / 2:.1f}"
+                                       for i in range(5)]
+            lowest_rated['Rating'] = [f"{lowest_rated['Rating'][i]}  |  {lowest_rated['Vote_average'][i] / 2:.1f}"
+                                      for i in range(5)]
     if is_year:
         # num films by month/year
         count_by_period = df.groupby(df['Date'].dt.month)['Name'].nunique().to_dict()
@@ -39,7 +38,6 @@ def extract_info(df, api, is_year=True):
         count_by_period = dict(sorted(count_by_period.items()))
     else:
         count_by_period = df.groupby(df['Date'].dt.year)['Name'].nunique().to_dict()
-    api_data = []
     if api:
         api_data.append(df[['Name', 'Genres']].explode('Genres').groupby('Genres')['Name'].nunique().to_dict())
         api_data.append(df[['Name', 'Country']].explode('Country').groupby('Country')['Name'].nunique().to_dict())
@@ -51,7 +49,7 @@ def extract_info(df, api, is_year=True):
 def extract_api(watched_data, api_key):
     problems, watched_data[['Country', 'Genres', 'Runtime', 'Vote_average']] = 0, None
     for index, film in enumerate(watched_data['Name'].to_list()):
-        # you need to request general info find an id and only then get detailed info using id
+        # you need to request general info, find an id and only then get detailed info using id
         id = requests.get(f'https://api.themoviedb.org/3/search/movie?api_key={api_key}&query={film}')
         if id.status_code == 200 and id.json()['results']:
             req = requests.get(f'https://api.themoviedb.org/3/movie/{id.json()["results"][0]["id"]}?api_key={api_key}')
@@ -65,10 +63,10 @@ def extract_api(watched_data, api_key):
                 watched_data.at[index, 'Runtime'] = req.json()['runtime']
                 watched_data.at[index, 'Vote_average'] = req.json()['vote_average']
             else:
-                # probably unstable conection
+                # probably unstable connection
                 problems += 1
         else:
-            # probably not films
+            # probably not film
             problems += 1
     return watched_data, problems
 
@@ -76,9 +74,9 @@ def extract_api(watched_data, api_key):
 def main(api=''):
     with zipfile.ZipFile(find_archive()) as zf:
         #####################################################################################
-        # Some people (well, me at least) have separate lists for every year, because there is no way to tell
-        # letterboxd that i've seen that movie as a child and just want to rate it. So if you like me change
-        # like_me to True and rewrite filter
+        # Some people (well, me at least) have separate lists for every year, since there is no way to tell
+        # letterboxd that I've seen that movie as a child and just want to rate it without adding it to watched.
+        # So if you like me change like_me to True and rewrite filter
         #####################################################################################
         like_me, filter = False, 'lists/20'
         if like_me:
