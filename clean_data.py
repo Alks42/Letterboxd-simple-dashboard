@@ -81,7 +81,7 @@ def main(api=''):
         like_me, filter = False, 'lists/20'
         if like_me:
             year_lists = [i for i in zf.namelist() if i.startswith(filter)]
-            watched_by_year = pd.concat(pd.read_csv(zf.open(i))['Name'] for i in year_lists)
+            watched_by_year = pd.concat(pd.read_csv(zf.open(i), skiprows=3)['Name'] for i in year_lists)
             watched_data = pd.merge(pd.read_csv(zf.open('watched.csv'))[['Name', 'Date']], watched_by_year, on='Name')
         else:
             watched_data = pd.read_csv(zf.open('watched.csv'))[['Name', 'Date']]
