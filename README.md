@@ -3,13 +3,6 @@ Analyzes your letterboxd data to create several charts and display other statist
 
 <img width="800" alt="ui" src='https://user-images.githubusercontent.com/90620708/184370386-9ef477a6-760d-4051-a786-ad2593cbce65.jpg'>
 
-## Requirements
-- PyQt6 _(but can be easily downgraded to Pyqt5)_ 
-- QtCharts
-- pandas
-- zipfile
-- os, sys, requests, webbrowser
-
 ## Get Started
 - You need to download your letterboxd data: Setting -> Import & Export -> Export Your Data. Or just click [here.](https://letterboxd.com/settings/data/)
 - Drop .zip file in the project folder. You can delete simple_data.zip after that.
